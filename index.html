@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PharmaDash | Apotek Digital Modern</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; scroll-behavior: smooth; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .gradient-blue { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); }
+        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); }
+        .footer-glass { background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); }
+        .receipt-paper { background: white; position: relative; border-radius: 4px; }
+        .receipt-paper::after {
+            content: ""; position: absolute; bottom: -10px; left: 0; right: 0; height: 10px;
+            background: linear-gradient(-45deg, transparent 5px, white 5px), linear-gradient(45deg, transparent 5px, white 5px);
+            background-size: 10px 10px;
+        }
+        /* Penambah visual untuk hero */
+        .hero-shape {
+            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+        }
+    </style>
+</head>
+<body class="bg-[#F8FAFC] text-slate-900 pb-20 md:pb-0">
+
+    <nav class="glass border-b sticky top-0 z-50 px-6 py-4 hidden md:block">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-2 cursor-pointer" onclick="showTab('beranda')">
+                <div class="bg-blue-600 p-2 rounded-xl text-white shadow-lg shadow-blue-200">
+                    <i data-lucide="pill" class="w-6 h-6"></i>
+                </div>
+                <span class="text-2xl font-bold text-blue-900 tracking-tight">PharmaDash</span>
+            </div>
+            
+            <div class="flex items-center gap-8 font-semibold text-sm text-slate-600">
+                <button onclick="showTab('beranda')" class="nav-link hover:text-blue-600 transition">Beranda</button>
+                <button onclick="showTab('katalog')" class="nav-link hover:text-blue-600 transition">Katalog</button>
+                <button onclick="showTab('resep')" class="nav-link hover:text-blue-600 transition">Upload Resep</button>
+                <button onclick="showTab('katalog')" class="bg-blue-600 text-white px-6 py-2.5 rounded-full hover:bg-blue-700 transition shadow-md">
+                    Beli Sekarang
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div id="modal-nota" class="fixed inset-0 bg-slate-900/80 z-[100] hidden flex items-center justify-center p-4 backdrop-blur-md">
+        <div class="receipt-paper p-8 max-w-sm w-full shadow-2xl transform transition-all animate-[fadeIn_0.4s_ease-out]">
+            <div class="text-center mb-6 border-b border-dashed border-slate-200 pb-4">
+                <div class="flex justify-center mb-2 text-blue-600"><i data-lucide="pill" class="w-8 h-8"></i></div>
+                <h3 class="text-xl font-black text-slate-800 uppercase tracking-tighter">PharmaDash Receipt</h3>
+                <p class="text-[10px] text-slate-400" id="nota-id"></p>
+                <p class="text-[10px] text-slate-400" id="nota-date"></p>
+            </div>
+            <div id="nota-items" class="space-y-4 mb-6"></div>
+            <div class="border-t border-dashed border-slate-200 pt-4 mb-6">
+                <div class="flex justify-between items-center">
+                    <span class="font-bold text-slate-800">TOTAL</span>
+                    <span class="text-xl font-black text-blue-600" id="nota-total"></span>
+                </div>
+            </div>
+            <div class="flex flex-col items-center gap-4">
+                <div class="bg-slate-100 p-2 w-full flex justify-center opacity-70">
+                    <div class="h-8 w-48 bg-[url('https://upload.wikimedia.org/wikipedia/commons/8/84/Ean-13-5901234123457.png')] bg-contain bg-repeat-x"></div>
+                </div>
+                <button onclick="closeNota()" class="w-full bg-slate-800 text-white py-3 rounded-lg font-bold hover:bg-slate-900 transition active:scale-95">Tutup Struk</button>
+            </div>
+        </div>
+    </div>
+
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 flex justify-around items-center py-3 z-50 shadow-[0_-5px_20px_rgba(0,0,0,0.05)] rounded-t-3xl">
+        <button onclick="showTab('beranda')" class="flex flex-col items-center gap-1 text-slate-400 focus:text-blue-600">
+            <i data-lucide="home" class="w-6 h-6"></i>
+            <span class="text-[10px] font-bold">Beranda</span>
+        </button>
+        <button onclick="showTab('katalog')" class="flex flex-col items-center gap-1 text-slate-400 focus:text-blue-600">
+            <i data-lucide="search" class="w-6 h-6"></i>
+            <span class="text-[10px] font-bold">Katalog</span>
+        </button>
+        <div class="relative -top-6">
+            <button onclick="showTab('resep')" class="bg-blue-600 text-white p-4 rounded-2xl shadow-xl shadow-blue-200 ring-4 ring-white">
+                <i data-lucide="file-plus-2" class="w-6 h-6"></i>
+            </button>
+        </div>
+        <button onclick="showTab('katalog')" class="flex flex-col items-center gap-1 text-slate-400 focus:text-blue-600">
+            <i data-lucide="shopping-cart" class="w-6 h-6"></i>
+            <span class="text-[10px] font-bold">Beli</span>
+        </button>
+    </nav>
+
+    <main class="min-h-screen">
+        <div id="beranda" class="tab-content active">
+            <header class="gradient-blue text-white pt-12 pb-24 px-6 overflow-hidden relative">
+                <div class="absolute top-0 right-0 w-1/2 h-full bg-blue-400/10 -skew-x-12 translate-x-1/4"></div>
+                
+                <div class="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center relative z-10">
+                    <div class="text-center md:text-left">
+                        <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest mb-6 border border-white/20">
+                            <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span> Buka Hari Ini s/d 22:00
+                        </div>
+                        <h1 class="text-4xl md:text-7xl font-extrabold leading-[1.1]">Kesehatan Anda, <br><span class="text-blue-200">Prioritas Kami.</span></h1>
+                        <p class="mt-6 text-blue-50 text-lg opacity-90 max-w-md mx-auto md:mx-0">Layanan apotek modern dengan sistem tebus resep digital dan pengantaran kilat langsung ke rumah Anda.</p>
+                        <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                            <button onclick="showTab('katalog')" class="bg-white text-blue-700 px-10 py-4 rounded-2xl font-bold shadow-xl hover:scale-105 transition transform active:scale-95">Mulai Belanja</button>
+                            <a href="#" class="bg-blue-900/30 backdrop-blur-md text-white border border-white/20 px-8 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 hover:bg-white/10 transition">
+                                <i data-lucide="message-square" class="text-green-400"></i> Tanya Apoteker
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="relative hidden md:flex justify-center items-center">
+                        <div class="relative w-full max-w-md aspect-square">
+                            <div class="absolute inset-0 bg-blue-400 rounded-full blur-[80px] opacity-30 animate-pulse"></div>
+                            
+                            <div class="relative bg-white/10 backdrop-blur-xl border border-white/20 rounded-[3rem] p-8 shadow-2xl overflow-hidden h-full flex flex-col justify-center items-center text-center">
+                                <div class="bg-white text-blue-600 p-6 rounded-3xl shadow-2xl mb-6">
+                                    <i data-lucide="shield-check" class="w-20 h-20"></i>
+                                </div>
+                                <h3 class="text-2xl font-bold mb-2">Terpercaya & Aman</h3>
+                                <p class="text-blue-100 text-sm opacity-80">Kami menyediakan obat asli dengan standar pelayanan rumah sakit internasional.</p>
+                                
+                                <div class="absolute top-10 right-0 bg-white text-slate-800 p-4 rounded-2xl shadow-xl flex items-center gap-3 animate-bounce">
+                                    <div class="bg-green-100 p-2 rounded-lg"><i data-lucide="clock" class="w-5 h-5 text-green-600"></i></div>
+                                    <div class="text-left"><p class="text-[10px] font-bold text-slate-400 uppercase">Delivery</p><p class="text-xs font-bold">15-30 Menit</p></div>
+                                </div>
+                                <div class="absolute bottom-12 -left-4 bg-white text-slate-800 p-4 rounded-2xl shadow-xl flex items-center gap-3">
+                                    <div class="bg-blue-100 p-2 rounded-lg"><i data-lucide="award" class="w-5 h-5 text-blue-600"></i></div>
+                                    <div class="text-left"><p class="text-[10px] font-bold text-slate-400 uppercase">Quality</p><p class="text-xs font-bold">BPOM Certified</p></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <section class="max-w-7xl mx-auto px-6 -mt-12 relative z-20">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white p-8 rounded-3xl shadow-xl border border-slate-100 flex items-start gap-5">
+                        <div class="bg-blue-100 p-4 rounded-2xl text-blue-600"><i data-lucide="truck"></i></div>
+                        <div><h4 class="font-bold text-lg">Pengiriman Kilat</h4><p class="text-sm text-slate-500">Sampai dalam 30 menit ke lokasi Anda.</p></div>
+                    </div>
+                    <div class="bg-white p-8 rounded-3xl shadow-xl border border-slate-100 flex items-start gap-5">
+                        <div class="bg-green-100 p-4 rounded-2xl text-green-600"><i data-lucide="shield-check"></i></div>
+                        <div><h4 class="font-bold text-lg">100% Produk Asli</h4><p class="text-sm text-slate-500">Semua obat bersertifikasi BPOM & Kemenkes.</p></div>
+                    </div>
+                    <div class="bg-white p-8 rounded-3xl shadow-xl border border-slate-100 flex items-start gap-5">
+                        <div class="bg-purple-100 p-4 rounded-2xl text-purple-600"><i data-lucide="clock"></i></div>
+                        <div><h4 class="font-bold text-lg">Layanan 24/7</h4><p class="text-sm text-slate-500">Siap melayani kebutuhan darurat Anda.</p></div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div id="katalog" class="tab-content max-w-7xl mx-auto p-6 pt-20">
+            <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm mb-10 relative z-20">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div>
+                        <h2 class="text-3xl font-extrabold text-slate-800 tracking-tight">E-Katalog Obat</h2>
+                        <p class="text-slate-500 mt-1">Cari dan temukan kebutuhan kesehatan Anda.</p>
+                    </div>
+                    <div class="flex w-full md:w-auto gap-3">
+                        <div class="relative flex-1 md:w-80">
+                            <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
+                            <input type="text" id="search-input" onkeyup="filterMedicine()" class="pl-12 pr-4 py-3.5 bg-slate-50 border-none rounded-2xl w-full outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="Cari obat...">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8" id="product-grid"></div>
+        </div>
+
+        <div id="resep" class="tab-content max-w-4xl mx-auto p-6 py-12">
+            <div class="bg-white p-8 md:p-16 rounded-[3rem] shadow-2xl border border-slate-50 text-center relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-8 opacity-10"><i data-lucide="stethoscope" class="w-32 h-32"></i></div>
+                <div class="w-24 h-24 bg-blue-600 text-white rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-xl shadow-blue-200">
+                    <i data-lucide="clipboard-list" class="w-12 h-12"></i>
+                </div>
+                <h2 class="text-3xl font-black mb-4">Tebus Resep Tanpa Antre</h2>
+                <p class="text-slate-500 mb-10 max-w-md mx-auto">Cukup foto resep dokter Anda, unggah di sini, dan kurir kami akan mengantar obatnya ke rumah.</p>
+                
+                <div class="border-4 border-dashed border-blue-100 p-12 rounded-[2rem] mb-8 bg-blue-50/30 hover:bg-blue-50 transition-all cursor-pointer group relative">
+                    <input type="file" id="resep-file" class="hidden" accept="image/*" onchange="previewImage(event)">
+                    <label for="resep-file" class="cursor-pointer block">
+                        <div id="upload-ui">
+                            <i data-lucide="cloud-lightning" class="mx-auto mb-4 text-blue-400 group-hover:scale-110 transition"></i>
+                            <p class="font-bold text-slate-700">Ambil Foto atau Pilih File</p>
+                            <p class="text-sm text-slate-400 mt-2 italic">Pastikan tulisan pada resep terbaca jelas.</p>
+                        </div>
+                        <img id="image-preview" class="hidden max-h-64 mx-auto rounded-xl shadow-md border-4 border-white">
+                    </label>
+                </div>
+                <button onclick="submitResep()" class="w-full bg-blue-600 text-white py-5 rounded-[1.5rem] font-bold text-lg hover:bg-blue-700 shadow-xl shadow-blue-200 transition">Proses Resep Sekarang</button>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer-glass text-slate-300 mt-20 pt-20 pb-10 px-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-20">
+                <div class="space-y-6">
+                    <div class="flex items-center gap-3">
+                        <div class="bg-blue-600 p-2 rounded-xl text-white">
+                            <i data-lucide="pill" class="w-6 h-6"></i>
+                        </div>
+                        <span class="text-2xl font-bold text-white tracking-tight">PharmaDash</span>
+                    </div>
+                    <p class="text-slate-400 leading-relaxed">Solusi kesehatan digital terlengkap di Indonesia. Melayani dengan sepenuh hati sejak 2026.</p>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold text-lg mb-8 relative inline-block">Layanan Kami <span class="absolute -bottom-2 left-0 w-8 h-1 bg-blue-600 rounded-full"></span></h4>
+                    <ul class="space-y-4 font-medium">
+                        <li><a href="#" class="hover:text-blue-500 transition-colors">Tebus Resep Online</a></li>
+                        <li><a href="#" class="hover:text-blue-500 transition-colors">Konsultasi Apoteker</a></li>
+                        <li><a href="#" class="hover:text-blue-500 transition-colors">Pengiriman Kilat</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-white font-bold text-lg mb-8 relative inline-block">Bantuan <span class="absolute -bottom-2 left-0 w-8 h-1 bg-blue-600 rounded-full"></span></h4>
+                    <ul class="space-y-4 font-medium">
+                        <li><a href="#" class="hover:text-blue-500 transition-colors">Pusat Bantuan</a></li>
+                        <li><a href="#" class="hover:text-blue-500 transition-colors">Syarat & Ketentuan</a></li>
+                    </ul>
+                </div>
+
+                <div class="bg-white/5 p-8 rounded-[2rem] border border-white/10">
+                    <h4 class="text-white font-bold text-lg mb-4">Berlangganan Promo</h4>
+                    <div class="relative">
+                        <input type="email" placeholder="Email Anda" class="w-full bg-slate-800 border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-blue-600 outline-none transition">
+                        <button class="w-full mt-3 bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition">Daftar</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-white/10 pt-10 flex flex-col md:flex-row justify-between items-center gap-6 text-sm text-slate-500">
+                <p>© 2026 PharmaDash - PT. Medika Digital Indonesia. All rights reserved.</p>
+                <div class="flex gap-8">
+                    <span class="flex items-center gap-2"><i data-lucide="shield-check" class="w-4 h-4 text-green-500"></i> Terverifikasi KEMENKES</span>
+                    <span class="flex items-center gap-2"><i data-lucide="lock" class="w-4 h-4 text-blue-500"></i> Secure Payment</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const products = [
+            { id: 1, name: "Paracetamol 500mg", cat: "Obat Bebas", price: 15500, stock: 45, img: "pill" },
+            { id: 2, name: "Amoxicillin 500mg", cat: "Obat Keras", price: 28000, stock: 0, img: "beaker" },
+            { id: 3, name: "Vitamin C 1000mg Platinum", cat: "Vitamin", price: 65000, stock: 120, img: "zap" },
+            { id: 4, name: "Sanmol Syrup Anak", cat: "Sirup", price: 42000, stock: 15, img: "baby" },
+            { id: 5, name: "Betadine Antiseptic 30ml", cat: "Luka", price: 32000, stock: 30, img: "bandage" },
+            { id: 6, name: "Masker KN95 (Isi 10)", cat: "Alkes", price: 85000, stock: 200, img: "shield-check" },
+            { id: 7, name: "Thermometer Digital", cat: "Alkes", price: 110000, stock: 12, img: "thermometer" },
+            { id: 8, name: "Madu Manuka 500g", cat: "Suplemen", price: 450000, stock: 5, img: "droplets" }
+        ];
+
+        lucide.createIcons();
+        renderKatalog(products);
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            lucide.createIcons();
+        }
+
+        function renderKatalog(data) {
+            const grid = document.getElementById('product-grid');
+            grid.innerHTML = '';
+            data.forEach(p => {
+                const isOutOfStock = p.stock === 0;
+                grid.innerHTML += `
+                    <div class="bg-white p-4 md:p-6 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group">
+                        <div class="h-32 md:h-44 bg-slate-50 rounded-[1.5rem] flex items-center justify-center mb-6 group-hover:bg-blue-50 transition">
+                            <i data-lucide="${p.img}" class="w-16 h-16 text-blue-600/40 group-hover:text-blue-600 transition-colors"></i>
+                        </div>
+                        <div class="px-1">
+                            <p class="text-[10px] text-blue-600 font-black uppercase tracking-widest mb-1">${p.cat}</p>
+                            <h4 class="font-bold text-slate-800 text-sm md:text-base leading-tight mb-2 h-10 line-clamp-2">${p.name}</h4>
+                            <div class="flex justify-between items-end">
+                                <div>
+                                    <p class="text-blue-900 font-black text-lg">Rp ${p.price.toLocaleString('id-ID')}</p>
+                                    ${p.stock > 0 ? `<p class="text-[10px] text-green-500 font-bold">Stok: ${p.stock}</p>` : `<p class="text-[10px] text-red-500 font-bold">Stok Habis</p>`}
+                                </div>
+                                <button onclick="beliObat(${p.id})" class="${isOutOfStock ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg shadow-blue-100'} p-3 rounded-2xl transition transform active:scale-90" ${isOutOfStock ? 'disabled' : ''}>
+                                    <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            lucide.createIcons();
+        }
+
+        function filterMedicine() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const filtered = products.filter(p => p.name.toLowerCase().includes(query));
+            renderKatalog(filtered);
+        }
+
+        function beliObat(id) {
+            const product = products.find(p => p.id === id);
+            const notaDate = new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+            const notaId = "TRX-" + Math.random().toString(36).substr(2, 9).toUpperCase();
+            
+            document.getElementById('nota-id').innerText = notaId;
+            document.getElementById('nota-date').innerText = notaDate;
+            document.getElementById('nota-total').innerText = `Rp ${product.price.toLocaleString('id-ID')}`;
+            document.getElementById('nota-items').innerHTML = `
+                <div class="flex justify-between items-start text-xs">
+                    <div class="text-slate-700">
+                        <p class="font-bold">${product.name}</p>
+                        <p class="text-slate-400">Qty: 1</p>
+                    </div>
+                    <span class="font-bold text-slate-800">Rp ${product.price.toLocaleString('id-ID')}</span>
+                </div>
+                <div class="flex justify-between items-center text-[10px] text-slate-400">
+                    <span>Metode: QRIS/Transfer</span>
+                    <span>Pajak: Rp 0</span>
+                </div>
+            `;
+
+            document.getElementById('modal-nota').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeNota() {
+            document.getElementById('modal-nota').classList.add('hidden');
+        }
+
+        function previewImage(event) {
+            const reader = new FileReader();
+            reader.onload = function() {
+                const output = document.getElementById('image-preview');
+                const uploadUI = document.getElementById('upload-ui');
+                output.src = reader.result;
+                output.classList.remove('hidden');
+                uploadUI.classList.add('hidden');
+            }
+            reader.readAsDataURL(event.target.files[0]);
+        }
+
+        function submitResep() {
+            const fileInput = document.getElementById('resep-file');
+            if (!fileInput.files.length) {
+                alert('Pilih foto resep terlebih dahulu!');
+                return;
+            }
+            alert('Resep berhasil diunggah! Kami akan menghubungi Anda melalui WhatsApp untuk konfirmasi harga.');
+            document.getElementById('image-preview').classList.add('hidden');
+            document.getElementById('upload-ui').classList.remove('hidden');
+            fileInput.value = "";
+            showTab('beranda');
+        }
+    </script>
+</body>
+</html>
