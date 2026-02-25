@@ -15,16 +15,28 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .toast-in { animation: slideIn 0.3s ease-out forwards; }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        
+        /* Mobile Overlay Logic */
+        #sidebar { transition: transform 0.3s ease-in-out; }
+        @media (max-width: 768px) {
+            #sidebar.hidden-mobile { transform: translateX(-100%); }
+            #sidebar.show-mobile { transform: translateX(0); }
+        }
     </style>
 </head>
 <body class="flex h-screen overflow-hidden">
 
-    <aside class="w-64 bg-white border-r border-slate-200 flex flex-col hidden md:flex">
-        <div class="p-6 flex items-center gap-3">
-            <div class="bg-blue-600 p-2 rounded-xl text-white shadow-lg shadow-blue-200">
-                <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+    <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 flex flex-col md:relative md:translate-x-0 hidden-mobile">
+        <div class="p-6 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-600 p-2 rounded-xl text-white shadow-lg shadow-blue-200">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+                </div>
+                <span class="text-xl font-bold text-slate-800 tracking-tight">DashAdmin</span>
             </div>
-            <span class="text-xl font-bold text-slate-800 tracking-tight">DashAdmin</span>
+            <button onclick="toggleMobileMenu()" class="md:hidden text-slate-400">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
         </div>
 
         <nav class="flex-1 px-4 space-y-1 overflow-y-auto custom-scrollbar">
@@ -66,13 +78,21 @@
         </div>
     </aside>
 
+    <div id="sidebar-overlay" onclick="toggleMobileMenu()" class="fixed inset-0 bg-black/20 z-40 hidden"></div>
+
     <main class="flex-1 flex flex-col overflow-hidden">
-        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8">
-            <h2 id="page-title" class="text-lg font-bold text-slate-800">Ringkasan Dashboard</h2>
-            <div class="flex items-center gap-4">
+        <header class="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 md:px-8">
+            <div class="flex items-center gap-3">
+                <button onclick="toggleMobileMenu()" class="md:hidden p-2 text-slate-600">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+                <h2 id="page-title" class="text-sm md:text-lg font-bold text-slate-800 truncate max-w-[150px] md:max-w-none">Ringkasan Dashboard</h2>
+            </div>
+            
+            <div class="flex items-center gap-2 md:gap-4">
                 <div class="relative hidden sm:block">
                     <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
-                    <input type="text" onkeyup="searchGlobal(this.value)" placeholder="Cari data..." class="pl-10 pr-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-blue-500 w-64 outline-none">
+                    <input type="text" onkeyup="searchGlobal(this.value)" placeholder="Cari data..." class="pl-10 pr-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-blue-500 w-40 lg:w-64 outline-none">
                 </div>
                 <button onclick="toggleNotifications()" class="relative p-2 text-slate-400 hover:bg-slate-100 rounded-lg">
                     <i data-lucide="bell" class="w-5 h-5"></i>
@@ -81,32 +101,32 @@
             </div>
         </header>
 
-        <div class="flex-1 overflow-y-auto p-8 custom-scrollbar">
-            <div id="tab-overview" class="content-tab space-y-8">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    <div class="glass-card p-6 rounded-2xl">
-                        <p class="text-xs font-bold text-slate-400 uppercase mb-2">Penjualan Hari Ini</p>
-                        <h3 class="text-2xl font-black text-slate-800">Rp 4.250.000</h3>
-                        <p class="text-xs text-green-500 font-bold mt-2 flex items-center gap-1"><i data-lucide="trending-up" class="w-3 h-3"></i> +12% vs Kemarin</p>
+        <div class="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar">
+            <div id="tab-overview" class="content-tab space-y-6 md:space-y-8">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                    <div class="glass-card p-5 md:p-6 rounded-2xl">
+                        <p class="text-[10px] md:text-xs font-bold text-slate-400 uppercase mb-2">Penjualan Hari Ini</p>
+                        <h3 class="text-xl md:text-2xl font-black text-slate-800">Rp 4.250.000</h3>
+                        <p class="text-xs text-green-500 font-bold mt-2 flex items-center gap-1"><i data-lucide="trending-up" class="w-3 h-3"></i> +12%</p>
                     </div>
-                    <div onclick="switchTab('inventory')" class="glass-card p-6 rounded-2xl cursor-pointer hover:border-blue-300 transition">
-                        <p class="text-xs font-bold text-slate-400 uppercase mb-2">Stok Menipis</p>
-                        <h3 id="stat-stok-menipis" class="text-2xl font-black text-red-500">14 Item</h3>
-                        <p class="text-xs text-slate-500 font-bold mt-2 underline cursor-pointer">Lihat Detail</p>
+                    <div onclick="switchTab('inventory')" class="glass-card p-5 md:p-6 rounded-2xl cursor-pointer hover:border-blue-300 transition">
+                        <p class="text-[10px] md:text-xs font-bold text-slate-400 uppercase mb-2">Stok Menipis</p>
+                        <h3 id="stat-stok-menipis" class="text-xl md:text-2xl font-black text-red-500">14 Item</h3>
+                        <p class="text-xs text-slate-500 font-bold mt-2 underline">Lihat Detail</p>
                     </div>
-                    <div onclick="switchTab('resep')" class="glass-card p-6 rounded-2xl cursor-pointer hover:border-blue-300 transition">
-                        <p class="text-xs font-bold text-slate-400 uppercase mb-2">Resep Menunggu</p>
-                        <h3 id="stat-resep-count" class="text-2xl font-black text-blue-600">3 Resep</h3>
-                        <p class="text-xs text-slate-500 font-bold mt-2 italic">Estimasi pengerjaan: 45m</p>
+                    <div onclick="switchTab('resep')" class="glass-card p-5 md:p-6 rounded-2xl cursor-pointer hover:border-blue-300 transition">
+                        <p class="text-[10px] md:text-xs font-bold text-slate-400 uppercase mb-2">Resep Menunggu</p>
+                        <h3 id="stat-resep-count" class="text-xl md:text-2xl font-black text-blue-600">3 Resep</h3>
+                        <p class="text-xs text-slate-500 font-bold mt-2 italic">Estimasi: 45m</p>
                     </div>
-                    <div class="glass-card p-6 rounded-2xl">
-                        <p class="text-xs font-bold text-slate-400 uppercase mb-2">Expired (30 Hari)</p>
-                        <h3 class="text-2xl font-black text-orange-500">8 Batch</h3>
+                    <div class="glass-card p-5 md:p-6 rounded-2xl">
+                        <p class="text-[10px] md:text-xs font-bold text-slate-400 uppercase mb-2">Expired (30 Hari)</p>
+                        <h3 class="text-xl md:text-2xl font-black text-orange-500">8 Batch</h3>
                         <p onclick="showToast('Fitur Return Batch diproses')" class="text-xs text-slate-500 font-bold mt-2 underline cursor-pointer">Proses Return</p>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
                     <div class="glass-card rounded-2xl p-6">
                         <div class="flex justify-between items-center mb-6">
                             <h4 class="font-bold text-slate-800">Produk Terlaris</h4>
@@ -114,78 +134,76 @@
                         </div>
                         <div class="space-y-4">
                             <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 font-bold italic">1</div>
-                                <div class="flex-1"><p class="text-sm font-bold">Paracetamol 500mg</p><p class="text-[10px] text-slate-400">Terjual: 450 Box</p></div>
-                                <p class="text-sm font-black">Rp 6.9M</p>
+                                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 font-bold italic shrink-0">1</div>
+                                <div class="flex-1 min-w-0"><p class="text-sm font-bold truncate">Paracetamol 500mg</p><p class="text-[10px] text-slate-400">450 Box</p></div>
+                                <p class="text-sm font-black shrink-0">Rp 6.9M</p>
                             </div>
                             <div class="flex items-center gap-4 border-t border-slate-50 pt-4">
-                                <div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-600 font-bold italic">2</div>
-                                <div class="flex-1"><p class="text-sm font-bold">Vitamin C 1000mg</p><p class="text-[10px] text-slate-400">Terjual: 320 Unit</p></div>
-                                <p class="text-sm font-black">Rp 3.2M</p>
+                                <div class="w-10 h-10 bg-slate-100 rounded-lg flex items-center justify-center text-slate-600 font-bold italic shrink-0">2</div>
+                                <div class="flex-1 min-w-0"><p class="text-sm font-bold truncate">Vitamin C 1000mg</p><p class="text-[10px] text-slate-400">320 Unit</p></div>
+                                <p class="text-sm font-black shrink-0">Rp 3.2M</p>
                             </div>
                         </div>
                     </div>
 
                     <div class="glass-card rounded-2xl p-6 bg-gradient-to-br from-blue-600 to-blue-800 text-white border-none">
                         <h4 class="font-bold mb-2 flex items-center gap-2"><i data-lucide="sparkles" class="w-5 h-5"></i> AI Stok Insight</h4>
-                        <p class="text-sm opacity-80 mb-6">Berdasarkan data 30 hari terakhir, algoritma memprediksi kebutuhan stok berikut:</p>
+                        <p class="text-sm opacity-80 mb-6">Prediksi kebutuhan berdasarkan algoritma 30 hari terakhir:</p>
                         <div class="bg-white/10 p-4 rounded-xl border border-white/20 mb-4">
                             <p class="text-xs font-bold">Madu Manuka 500g</p>
-                            <p class="text-xs opacity-70">Stok habis dalam 4 hari. Disarankan reorder 12 unit ke Supplier Kimia Farma.</p>
+                            <p class="text-[11px] opacity-70">Stok habis dalam 4 hari. Disarankan reorder 12 unit ke Supplier.</p>
                         </div>
-                        <button onclick="showToast('PO Berhasil Dibuat & Dikirim ke Supplier')" class="w-full py-2 bg-white text-blue-600 rounded-lg font-bold text-sm hover:bg-blue-50 transition">Auto-generate Purchase Order</button>
+                        <button onclick="showToast('PO Berhasil Dibuat')" class="w-full py-2 bg-white text-blue-600 rounded-lg font-bold text-sm hover:bg-blue-50 transition">Auto-generate PO</button>
                     </div>
                 </div>
             </div>
 
             <div id="tab-inventory" class="content-tab hidden space-y-6">
-                <div class="flex justify-between items-center">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <h3 class="text-xl font-bold">Master Inventori</h3>
-                    <button onclick="addInventoryItem()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-blue-700 transition">
-                        <i data-lucide="plus" class="w-4 h-4"></i> Tambah Obat Baru
+                    <button onclick="addInventoryItem()" class="w-full sm:w-auto bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center justify-center gap-2">
+                        <i data-lucide="plus" class="w-4 h-4"></i> Tambah Obat
                     </button>
                 </div>
-                <div class="glass-card rounded-2xl overflow-hidden">
-                    <table class="w-full text-left border-collapse">
+                <div class="glass-card rounded-2xl overflow-hidden overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[600px]">
                         <thead class="bg-slate-50 border-b border-slate-200">
                             <tr>
-                                <th class="p-4 text-xs font-bold text-slate-500">NAMA OBAT</th>
-                                <th class="p-4 text-xs font-bold text-slate-500">BATCH</th>
-                                <th class="p-4 text-xs font-bold text-slate-500">EXPIRED</th>
-                                <th class="p-4 text-xs font-bold text-slate-500">STOK</th>
-                                <th class="p-4 text-xs font-bold text-slate-500">STATUS</th>
-                                <th class="p-4 text-xs font-bold text-slate-500 text-right">AKSI</th>
+                                <th class="p-4 text-xs font-bold text-slate-500 uppercase">Obat</th>
+                                <th class="p-4 text-xs font-bold text-slate-500 uppercase">Batch</th>
+                                <th class="p-4 text-xs font-bold text-slate-500 uppercase">Expired</th>
+                                <th class="p-4 text-xs font-bold text-slate-500 uppercase">Stok</th>
+                                <th class="p-4 text-xs font-bold text-slate-500 uppercase">Status</th>
+                                <th class="p-4 text-xs font-bold text-slate-500 uppercase text-right">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody id="inventory-table-body" class="text-sm">
-                            </tbody>
+                        <tbody id="inventory-table-body" class="text-sm"></tbody>
                     </table>
                 </div>
             </div>
 
             <div id="tab-pos" class="content-tab hidden">
-                <div class="glass-card rounded-[2rem] p-12 text-center max-w-2xl mx-auto border-dashed border-2">
-                    <div class="w-20 h-20 bg-blue-100 text-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                        <i data-lucide="monitor" class="w-10 h-10"></i>
+                <div class="glass-card rounded-[2rem] p-8 md:p-12 text-center max-w-2xl mx-auto border-dashed border-2">
+                    <div class="w-16 h-16 md:w-20 md:h-20 bg-blue-100 text-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                        <i data-lucide="monitor" class="w-8 h-8 md:w-10 md:h-10"></i>
                     </div>
-                    <h3 class="text-2xl font-black mb-4">Integrasi POS Sistem</h3>
-                    <p class="text-slate-500 mb-8 leading-relaxed">Sistem Point of Sales (POS) sedang terintegrasi dengan repository eksternal untuk sinkronisasi data real-time antar cabang.</p>
-                    <a href="#" onclick="showToast('Mengalihkan ke modul POS...')" class="inline-flex items-center gap-3 bg-slate-900 text-white px-8 py-4 rounded-2xl font-bold hover:bg-black transition transform active:scale-95 shadow-xl">
-                        <i data-lucide="github" class="w-5 h-5"></i> Buka POS Module (External)
+                    <h3 class="text-xl md:text-2xl font-black mb-4">Integrasi POS Sistem</h3>
+                    <p class="text-sm md:text-base text-slate-500 mb-8 leading-relaxed">Sistem sinkronisasi real-time sedang berjalan.</p>
+                    <a href="#" onclick="showToast('Mengalihkan...')" class="inline-flex items-center gap-3 bg-slate-900 text-white px-6 md:px-8 py-3 md:py-4 rounded-2xl font-bold hover:bg-black transition text-sm">
+                        <i data-lucide="external-link" class="w-5 h-5"></i> Buka POS (External)
                     </a>
                 </div>
             </div>
 
             <div id="tab-resep" class="content-tab hidden space-y-6">
                 <h3 class="text-xl font-bold">Manajemen Resep Digital</h3>
-                <div id="resep-list" class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    </div>
+                <div id="resep-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6"></div>
             </div>
 
         </div>
     </main>
 
-    <div id="toast-container" class="fixed bottom-5 right-5 z-[99] flex flex-col gap-2"></div>
+    <div id="toast-container" class="fixed bottom-5 right-5 z-[99] flex flex-col gap-2 max-w-[90%] sm:max-w-md"></div>
 
     <script>
         // --- DATA DUMMY ---
@@ -203,20 +221,33 @@
         // --- CORE FUNCTIONS ---
         lucide.createIcons();
 
+        function toggleMobileMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            sidebar.classList.toggle('hidden-mobile');
+            sidebar.classList.toggle('show-mobile');
+            overlay.classList.toggle('hidden');
+        }
+
         function switchTab(tabId) {
             const titles = {
                 'overview': 'Ringkasan Dashboard',
-                'inventory': 'Manajemen Inventori & Stok',
+                'inventory': 'Manajemen Inventori',
                 'pos': 'Point of Sale (Kasir)',
                 'resep': 'Validasi Resep Masuk'
             };
             document.getElementById('page-title').innerText = titles[tabId];
             document.querySelectorAll('.content-tab').forEach(tab => tab.classList.add('hidden'));
             document.getElementById('tab-' + tabId).classList.remove('hidden');
+            
             document.querySelectorAll('.sidebar-link').forEach(link => {
                 link.classList.remove('active');
                 if(link.getAttribute('onclick')?.includes(tabId)) link.classList.add('active');
             });
+
+            // Auto close sidebar on mobile after selection
+            if(window.innerWidth < 768) toggleMobileMenu();
+
             if(tabId === 'inventory') renderInventory();
             if(tabId === 'resep') renderResep();
             lucide.createIcons();
@@ -227,7 +258,7 @@
             const toast = document.createElement('div');
             toast.className = `glass-card p-4 rounded-xl border-l-4 ${type === 'success' ? 'border-blue-500' : 'border-orange-500'} shadow-xl flex items-center gap-3 toast-in`;
             toast.innerHTML = `
-                <div class="bg-blue-100 p-2 rounded-full text-blue-600"><i data-lucide="check-circle" class="w-4 h-4"></i></div>
+                <div class="bg-blue-100 p-2 rounded-full text-blue-600 shrink-0"><i data-lucide="check-circle" class="w-4 h-4"></i></div>
                 <div><p class="text-xs font-bold text-slate-800">${message}</p></div>
             `;
             container.appendChild(toast);
@@ -245,11 +276,11 @@
             const dataToRender = filterData || inventoryData;
             tbody.innerHTML = dataToRender.map(item => `
                 <tr class="border-b border-slate-50 hover:bg-slate-50 transition">
-                    <td class="p-4"><p class="font-bold">${item.name}</p><p class="text-[10px] text-slate-400">Kategori: ${item.type}</p></td>
+                    <td class="p-4"><p class="font-bold truncate max-w-[150px]">${item.name}</p><p class="text-[10px] text-slate-400">${item.type}</p></td>
                     <td class="p-4 font-mono text-xs text-blue-600">${item.batch}</td>
-                    <td class="p-4">${item.exp}</td>
+                    <td class="p-4 text-xs">${item.exp}</td>
                     <td class="p-4 font-bold">${item.stock} Unit</td>
-                    <td class="p-4"><span class="${item.stock < 10 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'} px-3 py-1 rounded-full text-[10px] font-bold">${item.stock < 10 ? 'Stok Menipis' : 'Aman'}</span></td>
+                    <td class="p-4"><span class="${item.stock < 10 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'} px-3 py-1 rounded-full text-[10px] font-bold whitespace-nowrap">${item.stock < 10 ? 'Stok Menipis' : 'Aman'}</span></td>
                     <td class="p-4 text-right">
                         <button onclick="editItem(${item.id})" class="p-2 hover:bg-slate-200 rounded-lg"><i data-lucide="edit" class="w-4 h-4 text-slate-600"></i></button>
                     </td>
@@ -278,7 +309,6 @@
             showToast("Inventori diperbarui");
         }
 
-        // --- OPTIMIZED RESEP LOGIC ---
         function renderResep(filterData = null) {
             const list = document.getElementById('resep-list');
             const dataToRender = filterData || resepQueue;
@@ -288,14 +318,13 @@
             document.getElementById('stat-resep-count').innerText = `${antreCount} Resep`;
             
             if(dataToRender.length === 0) {
-                list.innerHTML = `<div class="col-span-3 text-center py-10 text-slate-400">Data tidak ditemukan.</div>`;
+                list.innerHTML = `<div class="col-span-full text-center py-10 text-slate-400">Data tidak ditemukan.</div>`;
                 return;
             }
 
             list.innerHTML = dataToRender.map(r => {
                 const isProses = r.status === 'proses';
                 const isSelesai = r.status === 'selesai';
-
                 return `
                     <div class="glass-card p-6 rounded-2xl border-l-4 ${isSelesai ? 'border-l-green-500 bg-green-50/30' : isProses ? 'border-l-blue-500 bg-blue-50/30' : 'border-l-orange-500'} transition-all">
                         <div class="flex justify-between items-start mb-4">
@@ -313,8 +342,8 @@
                         ${isSelesai ? 
                             `<div class="flex items-center justify-center gap-2 py-2 bg-green-100 text-green-700 rounded-lg text-xs font-bold"><i data-lucide="check-circle-2" class="w-4 h-4"></i> Siap Diambil</div>` :
                           isProses ? 
-                            `<button onclick="updateStatusResep('${r.id}', 'selesai')" class="w-full py-2 bg-green-600 text-white rounded-lg text-sm font-bold hover:bg-green-700 transition active:scale-95">Selesai</button>` :
-                            `<button onclick="updateStatusResep('${r.id}', 'proses')" class="w-full py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700 transition active:scale-95">Kerjakan</button>`
+                            `<button onclick="updateStatusResep('${r.id}', 'selesai')" class="w-full py-2 bg-green-600 text-white rounded-lg text-sm font-bold">Selesai</button>` :
+                            `<button onclick="updateStatusResep('${r.id}', 'proses')" class="w-full py-2 bg-blue-600 text-white rounded-lg text-sm font-bold">Kerjakan</button>`
                         }
                     </div>
                 `;
@@ -326,8 +355,7 @@
             const resep = resepQueue.find(r => r.id === id);
             if(resep) {
                 resep.status = newStatus;
-                const msg = newStatus === 'proses' ? `Mengerjakan resep ${id}` : `Resep ${id} Selesai!`;
-                showToast(msg, newStatus === 'proses' ? 'pending' : 'success');
+                showToast(newStatus === 'proses' ? `Mengerjakan ${id}` : `${id} Selesai!`);
                 renderResep();
             }
         }
